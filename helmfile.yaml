@@ -1,0 +1,50 @@
+repositories:
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: open-telemetry
+    url: https://open-telemetry.github.io/opentelemetry-helm-charts
+  - name: jetstack
+    url: https://charts.jetstack.io
+
+releases:
+  - name: cert-manager
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    version: v1.14.3
+    set:
+      - name: installCRDs
+        value: true
+
+  - name: mimir
+    namespace: monitoring
+    chart: grafana/mimir-distributed
+    version: 5.6.0
+    values: [values/mimir-values.yaml]
+
+  - name: loki
+    namespace: monitoring
+    chart: grafana/loki
+    values: [values/loki-values.yaml]
+
+  - name: tempo
+    namespace: monitoring
+    chart: grafana/tempo
+    values: [values/tempo-values.yaml]
+
+  - name: grafana
+    namespace: monitoring
+    chart: grafana/grafana
+    values: [values/grafana-values.yaml]
+
+  - name: prom-agent
+    namespace: monitoring
+    chart: prometheus-community/kube-prometheus-stack
+    values: [values/prometheus-agent-values.yaml]
+
+  - name: otel-collector
+    namespace: monitoring
+    chart: open-telemetry/opentelemetry-collector
+    version: 0.84.0
+    values: [values/otel-collector-values.yaml]

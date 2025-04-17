@@ -1,0 +1,30 @@
+mode: deployment
+
+serviceAccount:
+  create: false
+  name: mimir
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::920373027474:role/LokiS3AccessRole
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc: {}
+        http: {}
+
+  processors:
+    batch: {}
+
+  exporters:
+    otlp:
+      endpoint: tempo-distributor.monitoring.svc.cluster.local:4317
+      tls:
+        insecure: true
+
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [otlp]

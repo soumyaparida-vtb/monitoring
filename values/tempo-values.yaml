@@ -1,0 +1,40 @@
+serviceAccount:
+  create: false
+  name: mimir
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::920373027474:role/LokiS3AccessRole
+
+tempo:
+  storage:
+    trace:
+      backend: s3
+      s3:
+        bucket: tempo-traces-ad-01
+        endpoint: s3.ap-south-1.amazonaws.com
+        region: ap-south-1
+
+  metricsGenerator:
+    enabled: true
+
+  searchEnabled: true
+
+ingress:
+  enabled: true
+  ingressClassName: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/group.name: observability
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:920373027474:certificate/e27e4e1f-dcaa-4de9-9233-a3956b6a90fb
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: tempo.internal.utkalorganic.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - tempo.internal.utkalorganic.com
+      secretName: tempo-tls

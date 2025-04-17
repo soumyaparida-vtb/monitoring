@@ -1,0 +1,91 @@
+adminUser: admin
+adminPassword: admin@123
+
+replicaCount: 1
+
+serviceAccount:
+  create: true
+  name: mimir
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::920373027474:role/LokiS3AccessRole
+
+persistence:
+  enabled: true
+  storageClassName: gp2
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+
+# Since we're exposing Grafana via Istio, ClusterIP is appropriate
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true  # We're using Istio Gateway + VirtualService instead
+
+grafana.ini:
+  server:
+    root_url: https://grafana.utkalorganic.com
+    serve_from_sub_path: true
+  auth:
+    disable_login_form: false
+  auth.anonymous:
+    enabled: false
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 500m
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        url: http://loki-gateway.monitoring.svc.cluster.local
+        access: proxy
+        isDefault: false
+      - name: Tempo
+        type: tempo
+        url: http://tempo.monitoring.svc.cluster.local:3100
+        access: proxy
+        isDefault: false
+      - name: Mimir
+        type: prometheus
+        url: http://mimir-nginx.monitoring.svc.cluster.local/prometheus
+        access: proxy
+        isDefault: true
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "fake"
+
+sidecar:
+  dashboards:
+    enabled: true
+  datasources:
+    enabled: true
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+dashboards:
+  default: {}
+
+rbac:
+  create: true

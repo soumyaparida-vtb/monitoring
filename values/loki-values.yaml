@@ -1,0 +1,47 @@
+loki:
+  auth_enabled: false
+
+  schemaConfig:
+    configs:
+      - from: 2024-01-01
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+
+  storage:
+    type: s3
+    bucketNames:
+      chunks: loki-chunks-ad-01
+      ruler: loki-ruler-ad-01
+      admin: loki-admin-ad-01
+      data: loki-data-ad
+    s3:
+      endpoint: s3.ap-south-1.amazonaws.com
+      region: ap-south-1
+
+serviceAccount:
+  create: false
+  name: mimir
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::920373027474:role/LokiS3AccessRole
+
+ingress:
+  enabled: true
+  ingressClassName: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/group.name: observability
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:920373027474:certificate/e27e4e1f-dcaa-4de9-9233-a3956b6a90fb
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - loki.internal.obs.utkalorganic.com
+  tls:
+    - secretName: loki-tls
+      hosts:
+        - loki.internal.obs.utkalorganic.com

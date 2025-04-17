@@ -1,0 +1,55 @@
+structuredConfig:
+  common:
+    storage:
+      backend: s3
+      s3:
+        bucket_name: mimir-metrics-ad
+        endpoint: s3.ap-south-1.amazonaws.com
+        region: ap-south-1
+
+  blocks_storage:
+    backend: s3
+    s3:
+      bucket_name: mimir-blocks-ad
+      endpoint: s3.ap-south-1.amazonaws.com
+      region: ap-south-1
+
+  ruler_storage:
+    backend: s3
+    s3:
+      bucket_name: mimir-rules-ad
+      endpoint: s3.ap-south-1.amazonaws.com
+      region: ap-south-1
+
+  alertmanager_storage:
+    backend: s3
+    s3:
+      bucket_name: mimir-alerts-ad
+      endpoint: s3.ap-south-1.amazonaws.com
+      region: ap-south-1
+
+serviceAccount:
+  create: false
+  name: mimir
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::920373027474:role/LokiS3AccessRole
+
+ingress:
+  enabled: true
+  ingressClassName: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/group.name: observability
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:920373027474:certificate/e27e4e1f-dcaa-4de9-9233-a3956b6a90fb
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+  hosts:
+    - mimir.internal.utkalorganic.com
+
+  tls:
+    - hosts:
+        - mimir.internal.utkalorganic.com
+      secretName: mimir-tls
