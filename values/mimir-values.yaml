@@ -53,3 +53,11 @@ ingress:
     - hosts:
         - mimir.internal.utkalorganic.com
       secretName: mimir-tls
+
+ingester:
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 50Gi
+    storageClassName: gp2-csi  # <--- IMPORTANT: switch to a CSI-enabled SC that supports resizing
